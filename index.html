@@ -945,3 +945,74 @@
                     const priceHistory = await this.service.getItemPriceHistory(item.items.id);
                     
                     this.renderItemDetail(detailedData, priceHistory.data || []);
+                } catch (error) {
+                    console.error('❌ Failed to load item detail:', error);
+                    body.innerHTML = '<div class="error">Failed to load item details.</div>';
+                }
+            }
+
+            renderItemDetail(data, history) {
+                const body = document.getElementById('detailBody');
+                let html = '';
+
+                if (data.customer) {
+                    const c = data.customer;
+                    const price = c.ddp_cost_case_net || c.ddp_cost_case || 0;
+                    html += `
+                        <h3>Customer Pricing</h3>
+                        <p>DDP Net: $${price.toFixed(2)} per case</p>
+                    `;
+                }
+
+                if (data.vendor) {
+                    const v = data.vendor;
+                    html += `
+                        <h3>Vendor Info</h3>
+                        <p>Vendor: ${v.vendors?.name || 'N/A'}</p>
+                        <p>FOB Case: $${(v.fob_cost_case || 0).toFixed(2)}</p>
+                    `;
+                }
+
+                if (history.length > 0) {
+                    html += '<h3>Price History</h3><ul>';
+                    history.forEach(h => {
+                        const price = h.ddp_cost_case_net || h.ddp_cost_case || 0;
+                        html += `<li>${h.price_quarters.quarter_name}: $${price.toFixed(2)}</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                body.innerHTML = html || '<div>No details available.</div>';
+            }
+
+            getPackageInfo(item) {
+                const units = item.units_per_case ?? 'N/A';
+                const weight = item.weight_per_unit ?? 'N/A';
+                const size = item.package_size ? ` (${item.package_size})` : '';
+                return `${units} units/case, ${weight} ${item.unit_of_measure || ''} per unit${size}`;
+            }
+
+            setupEventListeners() {
+                document.getElementById('quarterSelect').addEventListener('change', async (e) => {
+                    this.currentQuarter = e.target.value;
+                    await this.loadItems();
+                });
+
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    clearTimeout(this.searchTimeout);
+                    this.searchTerm = e.target.value.trim();
+                    this.searchTimeout = setTimeout(() => this.loadItems(), 300);
+                });
+            }
+        }
+
+        function closeDetail() {
+            document.getElementById('detailModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        const portal = new PricingPortal();
+        window.addEventListener('DOMContentLoaded', () => portal.initialize());
+    </script>
+</body>
+</html>

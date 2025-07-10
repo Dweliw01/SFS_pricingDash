@@ -50,6 +50,35 @@
             padding: 30px;
         }
 
+        .connection-status {
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .connection-status.connected {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+
+        .connection-status.disconnected {
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+
+        .connection-status.testing {
+            background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+            color: #1e40af;
+            border: 1px solid #60a5fa;
+        }
+
         .controls {
             display: flex;
             gap: 20px;
@@ -73,10 +102,6 @@
             cursor: pointer;
             appearance: none;
             min-width: 150px;
-        }
-        .quarter-selector select option {
-            color: #000;
-            background: #fff;
         }
 
         .quarter-selector::after {
@@ -132,7 +157,7 @@
             padding: 20px;
             border-bottom: 2px solid #e0e0e0;
             display: grid;
-            grid-template-columns: 120px 1fr 150px 120px;
+            grid-template-columns: 120px 1fr 150px 120px 100px;
             gap: 20px;
             font-weight: 600;
             color: #334155;
@@ -142,7 +167,7 @@
             padding: 20px;
             border-bottom: 1px solid #f0f0f0;
             display: grid;
-            grid-template-columns: 120px 1fr 150px 120px;
+            grid-template-columns: 120px 1fr 150px 120px 100px;
             gap: 20px;
             align-items: center;
             cursor: pointer;
@@ -179,10 +204,35 @@
             font-size: 1.1rem;
         }
 
-        .pagination {
-            text-align: center;
+        .customer {
+            font-size: 0.8rem;
             color: #6b7280;
-            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            background: #fef2f2;
+            color: #991b1b;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 1px solid #fecaca;
         }
 
         .detail-modal {
@@ -323,79 +373,6 @@
             gap: 20px;
         }
 
-        .history-section {
-            background: linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%);
-            border-radius: 12px;
-            padding: 25px;
-        }
-
-        .history-section h3 {
-            color: #7c3aed;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .download-btn {
-            background: #7c3aed;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .download-btn:hover {
-            background: #6d28d9;
-            transform: translateY(-2px);
-        }
-
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .history-table th,
-        .history-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .history-table th {
-            background: rgba(124, 58, 237, 0.1);
-            font-weight: 600;
-            color: #7c3aed;
-        }
-
-        .change-positive {
-            color: #059669;
-        }
-
-        .change-negative {
-            color: #dc2626;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: #6b7280;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f4f6;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -427,13 +404,16 @@
         </div>
 
         <div class="main-content">
+            <!-- Connection Status -->
+            <div class="connection-status testing" id="connectionStatus">
+                <span id="statusIcon">🔄</span>
+                <span id="statusText">Connecting to database...</span>
+            </div>
+
             <div class="controls">
                 <div class="quarter-selector">
                     <select id="quarterSelect">
-                        <option value="2025-Q2">Q2 2025</option>
-                        <option value="2025-Q1">Q1 2025</option>
-                        <option value="2024-Q4">Q4 2024</option>
-                        <option value="2024-Q3">Q3 2024</option>
+                        <option>Loading quarters...</option>
                     </select>
                 </div>
                 
@@ -445,15 +425,16 @@
 
             <div class="items-table" id="itemsTable">
                 <div class="table-header">
-                    <div>Item Number</div>
+                    <div>SKU</div>
                     <div>Description</div>
                     <div>Brand</div>
                     <div>DDP Price</div>
+                    <div>Customer</div>
                 </div>
                 
                 <div class="loading" id="loadingState">
                     <div class="spinner"></div>
-                    <div>Loading pricing data...</div>
+                    <div>Connecting to database...</div>
                 </div>
             </div>
         </div>
@@ -470,396 +451,497 @@
                 </div>
             </div>
             
-            <div class="detail-body">
-                <div class="perspectives">
-                    <div class="perspective">
-                        <h3>📦 VENDOR PERSPECTIVE (SAMIYA)</h3>
-                        <div id="vendorCosts">
-                            <div class="cost-line">
-                                <span class="cost-label">EXW Cost (Factory):</span>
-                                <span class="cost-value">$15.80 per case</span>
-                            </div>
-                            <div class="cost-line">
-                                <span class="cost-label">+ Sales Broker (3%):</span>
-                                <span class="cost-value">$0.72</span>
-                            </div>
-                            <div class="cost-line">
-                                <span class="cost-label">+ Ocean Freight:</span>
-                                <span class="cost-value">$2.72</span>
-                            </div>
-                            <div class="cost-line">
-                                <span class="cost-label">+ Port & Terminal Fees:</span>
-                                <span class="cost-value">$0.51</span>
-                            </div>
-                            <div class="cost-line">
-                                <span class="cost-label">+ Import Broker:</span>
-                                <span class="cost-value">$0.14</span>
-                            </div>
-                            <div class="cost-line">
-                                <span class="cost-label">+ Tariff (0.8%):</span>
-                                <span class="cost-value">$0.13</span>
-                            </div>
-                            <div class="cost-line">
-                                <span class="cost-label">+ Inland Freight:</span>
-                                <span class="cost-value">$0.51</span>
-                            </div>
-                            <div class="cost-line total">
-                                <span class="cost-label">Total Landed Cost:</span>
-                                <span class="cost-value">$20.53</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="perspective">
-                        <h3>🏢 SFS PERSPECTIVE</h3>
-                        <div id="sfsCosts">
-                            <div class="cost-line">
-                                <span class="cost-label">Landed Cost:</span>
-                                <span class="cost-value">$20.53</span>
-                            </div>
-                            <div class="cost-line">
-                                <span class="cost-label">+ SFS Margin (14.51%):</span>
-                                <span class="cost-value">$2.29</span>
-                            </div>
-                            <div class="cost-line">
-                                <span class="cost-label">+ Operating Costs:</span>
-                                <span class="cost-value">$1.07</span>
-                            </div>
-                            <div class="cost-line total">
-                                <span class="cost-label">SFS Selling Price:</span>
-                                <span class="cost-value">$23.89</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="perspective">
-                        <h3>🛒 CUSTOMER PERSPECTIVE (Victory Foods)</h3>
-                        <div id="customerCosts">
-                            <div class="cost-line">
-                                <span class="cost-label">DDP Price (Delivered):</span>
-                                <span class="cost-value">$23.89 per case</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="profit-analysis">
-                    <h3>📊 Profit Analysis</h3>
-                    <div class="profit-grid">
-                        <div class="cost-line">
-                            <span class="cost-label">• Gross Margin:</span>
-                            <span class="cost-value">$3.36 (14.51%)</span>
-                        </div>
-                        <div class="cost-line">
-                            <span class="cost-label">• Net Margin:</span>
-                            <span class="cost-value">$2.29 (9.59%)</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="profit-analysis">
-                    <h3>📏 Per Unit Breakdown</h3>
-                    <div class="profit-grid">
-                        <div class="cost-line">
-                            <span class="cost-label">• Price per unit (4 units):</span>
-                            <span class="cost-value">$5.77</span>
-                        </div>
-                        <div class="cost-line">
-                            <span class="cost-label">• Price per lb (24 lbs):</span>
-                            <span class="cost-value">$0.96</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="history-section">
-                    <h3>
-                        📈 PRICE HISTORY
-                        <button class="download-btn" onclick="downloadHistory()">Download Excel</button>
-                    </h3>
-                    <table class="history-table">
-                        <thead>
-                            <tr>
-                                <th>Quarter</th>
-                                <th>EXW</th>
-                                <th>Ocean</th>
-                                <th>Tariff</th>
-                                <th>DDP</th>
-                                <th>Change</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyTableBody">
-                            <tr>
-                                <td>Q2 2025</td>
-                                <td>$15.80</td>
-                                <td>$2.72</td>
-                                <td>$0.13</td>
-                                <td>$23.89</td>
-                                <td class="change-negative">--</td>
-                            </tr>
-                            <tr>
-                                <td>Q1 2025</td>
-                                <td>$15.50</td>
-                                <td>$2.65</td>
-                                <td>$0.13</td>
-                                <td>$23.45</td>
-                                <td class="change-positive">+1.9%</td>
-                            </tr>
-                            <tr>
-                                <td>Q4 2024</td>
-                                <td>$15.20</td>
-                                <td>$2.58</td>
-                                <td>$0.12</td>
-                                <td>$22.98</td>
-                                <td class="change-positive">+2.0%</td>
-                            </tr>
-                            <tr>
-                                <td>Q3 2024</td>
-                                <td>$15.00</td>
-                                <td>$2.50</td>
-                                <td>$0.12</td>
-                                <td>$22.50</td>
-                                <td class="change-positive">+2.1%</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="detail-body" id="detailBody">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Loading detailed pricing information...</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Sample data - replace with actual database queries
-        const sampleItems = [
-            {
-                id: '440173',
-                sku: '440173',
-                description: 'Sweet Plantain Slices',
-                brand: 'Doña Sofia',
-                ddpPrice: 23.89,
-                packageInfo: '4/6lb | Cases per Container: 2,200',
-                vendorCosts: {
-                    exwCost: 15.80,
-                    salesBroker: 0.72,
-                    oceanFreight: 2.72,
-                    portFees: 0.51,
-                    importBroker: 0.14,
-                    tariff: 0.13,
-                    inlandFreight: 0.51,
-                    totalLanded: 20.53
-                },
-                sfsCosts: {
-                    landedCost: 20.53,
-                    sfsMargin: 2.29,
-                    operatingCosts: 1.07,
-                    sellingPrice: 23.89
+        // ==========================================
+        // 🔧 SUPABASE CONFIGURATION
+        // ==========================================
+        
+        const SUPABASE_CONFIG = {
+            url: 'https://uiuqbnzxtcppyqgyaqoi.supabase.co',
+            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpdXFibnp4dGNwcHlxZ3lhcW9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5NTY1OTUsImV4cCI6MjA2NTUzMjU5NX0.TIElW0BH01THuaZ7AStR7rfZPLObxyo5utHvMi_DFnw',
+            restUrl: 'https://uiuqbnzxtcppyqgyaqoi.supabase.co/rest/v1'
+        };
+
+        // ==========================================
+        // 🗃️ SUPABASE REST CLIENT
+        // ==========================================
+        
+        class SupabaseRestClient {
+            constructor(config) {
+                this.baseUrl = config.restUrl;
+                this.apiKey = config.anonKey;
+                this.headers = {
+                    'apikey': this.apiKey,
+                    'Authorization': `Bearer ${this.apiKey}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                };
+            }
+
+            async query(table, options = {}) {
+                try {
+                    const url = new URL(`${this.baseUrl}/${table}`);
+                    
+                    // Add apikey to URL params (this is what works!)
+                    url.searchParams.set('apikey', this.apiKey);
+                    
+                    // Add query parameters
+                    if (options.select) {
+                        url.searchParams.set('select', options.select);
+                    }
+                    
+                    if (options.eq) {
+                        Object.entries(options.eq).forEach(([key, value]) => {
+                            url.searchParams.set(key, `eq.${value}`);
+                        });
+                    }
+                    
+                    if (options.or) {
+                        url.searchParams.set('or', options.or);
+                    }
+                    
+                    if (options.order) {
+                        url.searchParams.set('order', options.order);
+                    }
+                    
+                    if (options.limit) {
+                        url.searchParams.set('limit', options.limit);
+                    }
+
+                    console.log(`🌐 Querying ${table}`);
+
+                    const response = await fetch(url.toString(), {
+                        method: 'GET',
+                        headers: {
+                            'apikey': this.apiKey,
+                            'Authorization': `Bearer ${this.apiKey}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    console.log(`✅ ${table} query successful:`, data.length || 1, 'records');
+                    
+                    return { data, error: null };
+                    
+                } catch (error) {
+                    console.error(`❌ ${table} query failed:`, error.message);
+                    return { data: null, error: error.message };
                 }
-            },
-            {
-                id: '440174',
-                sku: '440174',
-                description: 'Yuca Chunks',
-                brand: 'La Reyna',
-                ddpPrice: 21.50,
-                packageInfo: '12/2lb | Cases per Container: 1,800'
-            },
-            {
-                id: '440175',
-                sku: '440175',
-                description: 'Cassava Strips',
-                brand: 'Sabor',
-                ddpPrice: 24.85,
-                packageInfo: '6/4lb | Cases per Container: 1,500'
-            },
-            {
-                id: '440176',
-                sku: '440176',
-                description: 'Green Plantain',
-                brand: 'Doña Sofia',
-                ddpPrice: 22.10,
-                packageInfo: '4/6lb | Cases per Container: 2,000'
-            },
-            {
-                id: '440177',
-                sku: '440177',
-                description: 'Tostones',
-                brand: 'La Reyna',
-                ddpPrice: 20.95,
-                packageInfo: '8/3lb | Cases per Container: 1,600'
             }
-        ];
 
-        let currentItems = [...sampleItems];
-        let selectedQuarter = '2025-Q2';
-
-        function initializeApp() {
-            loadItems();
-            setupEventListeners();
+            async testConnection() {
+                console.log('🔍 Testing Supabase connection...');
+                return await this.query('price_quarters', { 
+                    select: 'id,quarter_name', 
+                    limit: '1' 
+                });
+            }
         }
 
-        function setupEventListeners() {
-            document.getElementById('searchInput').addEventListener('input', handleSearch);
-            document.getElementById('quarterSelect').addEventListener('change', handleQuarterChange);
-        }
+        // ==========================================
+        // 🗃️ DATABASE QUERY FUNCTIONS
+        // ==========================================
+        
+        class PricingService {
+            constructor(client) {
+                this.client = client;
+            }
 
-        function loadItems() {
-            const tableContainer = document.getElementById('itemsTable');
-            const loadingState = document.getElementById('loadingState');
-            
-            // Simulate loading
-            setTimeout(() => {
-                loadingState.style.display = 'none';
-                renderItems(currentItems);
-            }, 1000);
-        }
+            async getPriceQuarters() {
+                console.log('📅 Loading price quarters...');
+                return await this.client.query('price_quarters', {
+                    select: 'id,quarter_name,fiscal_year,fiscal_qtr,is_current,start_date',
+                    order: 'start_date.desc'
+                });
+            }
 
-        function renderItems(items) {
-            const tableContainer = document.getElementById('itemsTable');
-            
-            // Clear existing content except header
-            const header = tableContainer.querySelector('.table-header');
-            tableContainer.innerHTML = '';
-            tableContainer.appendChild(header);
-
-            items.forEach(item => {
-                const row = document.createElement('div');
-                row.className = 'table-row';
-                row.onclick = () => showItemDetail(item);
+            async getCurrentQuarter() {
+                const result = await this.client.query('price_quarters', {
+                    select: 'id,quarter_name',
+                    eq: { is_current: true },
+                    limit: '1'
+                });
                 
-                row.innerHTML = `
-                    <div class="sku">${item.sku}</div>
-                    <div class="description">${item.description}</div>
-                    <div class="brand">${item.brand}</div>
-                    <div class="price">$${item.ddpPrice.toFixed(2)}</div>
+                if (result.data && result.data.length > 0) {
+                    return result.data[0];
+                }
+                
+                // Fallback to latest quarter
+                const latestResult = await this.client.query('price_quarters', {
+                    select: 'id,quarter_name',
+                    order: 'start_date.desc',
+                    limit: '1'
+                });
+                
+                return latestResult.data?.[0] || null;
+            }
+
+            async getItemsWithPricing(quarterId, searchTerm = '') {
+                console.log('📦 Loading items with pricing...', { quarterId, searchTerm });
+                
+                let options = {
+                    select: `
+                        id,
+                        item_id,
+                        customer_id,
+                        quarter_id,
+                        ddp_cost_case_net,
+                        ddp_cost_case,
+                        ddp_cost_unit_net,
+                        ddp_cost_unit,
+                        items!inner(
+                            id,
+                            sku,
+                            description,
+                            brand,
+                            units_per_case,
+                            weight_per_unit,
+                            package_size,
+                            is_active
+                        ),
+                        customers(
+                            name,
+                            code
+                        )
+                    `,
+                    eq: {
+                        'items.is_active': true
+                    },
+                    order: 'items.sku.asc'
+                };
+
+                if (quarterId) {
+                    options.eq.quarter_id = quarterId;
+                }
+
+                if (searchTerm) {
+                    const pattern = `%${searchTerm}%`;
+                    options.or = `items.sku.ilike.${pattern},items.description.ilike.${pattern},items.brand.ilike.${pattern}`;
+                }
+
+                return await this.client.query('customer_price_history', options);
+            }
+
+            async getItemDetailedPricing(itemId, quarterId) {
+                console.log('🔍 Loading detailed pricing...', { itemId, quarterId });
+                
+                // Get customer pricing data
+                const customerResult = await this.client.query('customer_price_history', {
+                    select: `
+                        *,
+                        items(
+                            sku,
+                            description,
+                            brand,
+                            units_per_case,
+                            weight_per_unit,
+                            package_size
+                        ),
+                        customers(
+                            name,
+                            code
+                        )
+                    `,
+                    eq: {
+                        item_id: itemId,
+                        quarter_id: quarterId
+                    },
+                    limit: '1'
+                });
+
+                // Get vendor pricing data
+                const vendorResult = await this.client.query('vendor_price_history', {
+                    select: `
+                        *,
+                        vendors(
+                            name,
+                            code,
+                            country
+                        )
+                    `,
+                    eq: {
+                        item_id: itemId,
+                        quarter_id: quarterId
+                    },
+                    limit: '1'
+                });
+
+                return {
+                    customer: customerResult.data?.[0] || null,
+                    vendor: vendorResult.data?.[0] || null
+                };
+            }
+
+            async getItemPriceHistory(itemId, limit = 8) {
+                return await this.client.query('customer_price_history', {
+                    select: `
+                        ddp_cost_case_net,
+                        ddp_cost_case,
+                        quarter_id,
+                        price_quarters!inner(
+                            quarter_name,
+                            start_date
+                        )
+                    `,
+                    eq: { item_id: itemId },
+                    order: 'price_quarters.start_date.desc',
+                    limit: limit.toString()
+                });
+            }
+        }
+
+        // ==========================================
+        // 🎨 PRICING PORTAL APPLICATION
+        // ==========================================
+        
+        class PricingPortal {
+            constructor() {
+                this.client = new SupabaseRestClient(SUPABASE_CONFIG);
+                this.service = new PricingService(this.client);
+                this.currentQuarter = null;
+                this.quarters = [];
+                this.items = [];
+                this.searchTerm = '';
+                this.searchTimeout = null;
+            }
+
+            async initialize() {
+                console.log('🚀 Initializing SFS Pricing Portal...');
+                
+                this.updateConnectionStatus('testing', '🔄', 'Testing database connection...');
+                
+                try {
+                    // Test connection with a more reliable method
+                    console.log('Testing connection...');
+                    const testUrl = `${SUPABASE_CONFIG.restUrl}/price_quarters?select=id&limit=1&apikey=${SUPABASE_CONFIG.anonKey}`;
+                    
+                    const testResponse = await fetch(testUrl, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_CONFIG.anonKey,
+                            'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!testResponse.ok) {
+                        throw new Error(`HTTP ${testResponse.status}: ${await testResponse.text()}`);
+                    }
+                    
+                    const testData = await testResponse.json();
+                    console.log('✅ Connection successful:', testData);
+
+                    this.updateConnectionStatus('connected', '✅', 'Connected to Supabase database');
+                    
+                    // Load quarters and items
+                    await this.loadQuarters();
+                    await this.loadItems();
+                    
+                    this.setupEventListeners();
+                    
+                } catch (error) {
+                    console.error('❌ Initialization failed:', error);
+                    this.updateConnectionStatus('disconnected', '❌', `Connection failed: ${error.message}`);
+                    this.showError('Failed to connect to database. Please check your connection and try again.');
+                }
+            }
+
+            updateConnectionStatus(status, icon, text) {
+                const statusEl = document.getElementById('connectionStatus');
+                const iconEl = document.getElementById('statusIcon');
+                const textEl = document.getElementById('statusText');
+                
+                statusEl.className = `connection-status ${status}`;
+                iconEl.textContent = icon;
+                textEl.textContent = text;
+            }
+
+            async loadQuarters() {
+                try {
+                    const result = await this.service.getPriceQuarters();
+                    
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+
+                    this.quarters = result.data || [];
+                    this.populateQuarterSelect();
+                    
+                    // Set current quarter
+                    const currentQuarter = await this.service.getCurrentQuarter();
+                    this.currentQuarter = currentQuarter?.id || null;
+                    
+                    if (this.currentQuarter) {
+                        document.getElementById('quarterSelect').value = this.currentQuarter;
+                    }
+                    
+                    console.log('✅ Loaded quarters:', this.quarters.length);
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load quarters:', error);
+                    this.showError('Failed to load quarters: ' + error.message);
+                }
+            }
+
+            populateQuarterSelect() {
+                const select = document.getElementById('quarterSelect');
+                select.innerHTML = '';
+                
+                if (this.quarters.length === 0) {
+                    select.innerHTML = '<option>No quarters available</option>';
+                    return;
+                }
+                
+                this.quarters.forEach(quarter => {
+                    const option = document.createElement('option');
+                    option.value = quarter.id;
+                    option.textContent = quarter.quarter_name;
+                    if (quarter.is_current) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+            }
+
+            async loadItems() {
+                try {
+                    this.showLoading('Loading pricing data...');
+                    
+                    const result = await this.service.getItemsWithPricing(this.currentQuarter, this.searchTerm);
+                    
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+
+                    this.items = result.data || [];
+                    this.renderItems();
+                    
+                    console.log('✅ Loaded items:', this.items.length);
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load items:', error);
+                    this.showError('Failed to load items: ' + error.message);
+                }
+            }
+
+            showLoading(message) {
+                const loadingEl = document.getElementById('loadingState');
+                loadingEl.style.display = 'block';
+                loadingEl.innerHTML = `
+                    <div class="spinner"></div>
+                    <div>${message}</div>
                 `;
+            }
+
+            hideLoading() {
+                document.getElementById('loadingState').style.display = 'none';
+            }
+
+            showError(message) {
+                this.hideLoading();
+                const tableContainer = document.getElementById('itemsTable');
                 
-                tableContainer.appendChild(row);
-            });
-
-            // Add pagination
-            const pagination = document.createElement('div');
-            pagination.className = 'pagination';
-            pagination.innerHTML = `Showing 1-${items.length} of ${items.length} Items [Previous] [Next]`;
-            tableContainer.appendChild(pagination);
-        }
-
-        function handleSearch(event) {
-            const searchTerm = event.target.value.toLowerCase();
-            const filteredItems = sampleItems.filter(item =>
-                item.sku.toLowerCase().includes(searchTerm) ||
-                item.description.toLowerCase().includes(searchTerm) ||
-                item.brand.toLowerCase().includes(searchTerm)
-            );
-            renderItems(filteredItems);
-        }
-
-        function handleQuarterChange(event) {
-            selectedQuarter = event.target.value;
-            // Here you would typically reload data for the new quarter
-            console.log('Quarter changed to:', selectedQuarter);
-        }
-
-        function showItemDetail(item) {
-            const modal = document.getElementById('detailModal');
-            const title = document.getElementById('detailItemTitle');
-            const subtitle = document.getElementById('detailItemSubtitle');
-            
-            title.textContent = `${item.sku} - ${item.description}`;
-            subtitle.textContent = item.packageInfo || 'Package info not available';
-            
-            // Update vendor costs if available
-            if (item.vendorCosts) {
-                updateVendorCosts(item.vendorCosts);
+                // Remove existing errors
+                const existingErrors = tableContainer.querySelectorAll('.error');
+                existingErrors.forEach(error => error.remove());
+                
+                const errorEl = document.createElement('div');
+                errorEl.className = 'error';
+                errorEl.innerHTML = `
+                    <strong>Error:</strong> ${message}
+                    <br><br>
+                    <strong>Troubleshooting:</strong>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Verify your Supabase project is active</li>
+                        <li>Check Row Level Security policies</li>
+                        <li>Ensure your database contains data</li>
+                    </ul>
+                `;
+                tableContainer.appendChild(errorEl);
             }
-            
-            if (item.sfsCosts) {
-                updateSFSCosts(item.sfsCosts);
+
+            renderItems() {
+                this.hideLoading();
+                const tableContainer = document.getElementById('itemsTable');
+                
+                // Clear existing content except header
+                const header = tableContainer.querySelector('.table-header');
+                tableContainer.innerHTML = '';
+                tableContainer.appendChild(header);
+                
+                if (this.items.length === 0) {
+                    const noResults = document.createElement('div');
+                    noResults.className = 'loading';
+                    noResults.innerHTML = '<div>No items found for the selected criteria</div>';
+                    tableContainer.appendChild(noResults);
+                    return;
+                }
+                
+                this.items.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'table-row';
+                    row.onclick = () => this.showItemDetail(item);
+                    
+                    const ddpPrice = item.ddp_cost_case_net || item.ddp_cost_case || 0;
+                    const customerName = item.customers?.name || 'N/A';
+                    
+                    row.innerHTML = `
+                        <div class="sku">${item.items.sku || 'N/A'}</div>
+                        <div class="description">${item.items.description || 'N/A'}</div>
+                        <div class="brand">${item.items.brand || 'N/A'}</div>
+                        <div class="price">$${ddpPrice.toFixed(2)}</div>
+                        <div class="customer">${customerName}</div>
+                    `;
+                    
+                    tableContainer.appendChild(row);
+                });
+                
+                // Add pagination info
+                const pagination = document.createElement('div');
+                pagination.style.textAlign = 'center';
+                pagination.style.padding = '20px';
+                pagination.style.color = '#6b7280';
+                pagination.innerHTML = `Showing ${this.items.length} items`;
+                tableContainer.appendChild(pagination);
             }
-            
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
 
-        function updateVendorCosts(costs) {
-            const vendorContainer = document.getElementById('vendorCosts');
-            vendorContainer.innerHTML = `
-                <div class="cost-line">
-                    <span class="cost-label">EXW Cost (Factory):</span>
-                    <span class="cost-value">$${costs.exwCost.toFixed(2)} per case</span>
-                </div>
-                <div class="cost-line">
-                    <span class="cost-label">+ Sales Broker (3%):</span>
-                    <span class="cost-value">$${costs.salesBroker.toFixed(2)}</span>
-                </div>
-                <div class="cost-line">
-                    <span class="cost-label">+ Ocean Freight:</span>
-                    <span class="cost-value">$${costs.oceanFreight.toFixed(2)}</span>
-                </div>
-                <div class="cost-line">
-                    <span class="cost-label">+ Port & Terminal Fees:</span>
-                    <span class="cost-value">$${costs.portFees.toFixed(2)}</span>
-                </div>
-                <div class="cost-line">
-                    <span class="cost-label">+ Import Broker:</span>
-                    <span class="cost-value">$${costs.importBroker.toFixed(2)}</span>
-                </div>
-                <div class="cost-line">
-                    <span class="cost-label">+ Tariff (0.8%):</span>
-                    <span class="cost-value">$${costs.tariff.toFixed(2)}</span>
-                </div>
-                <div class="cost-line">
-                    <span class="cost-label">+ Inland Freight:</span>
-                    <span class="cost-value">$${costs.inlandFreight.toFixed(2)}</span>
-                </div>
-                <div class="cost-line total">
-                    <span class="cost-label">Total Landed Cost:</span>
-                    <span class="cost-value">$${costs.totalLanded.toFixed(2)}</span>
-                </div>
-            `;
-        }
-
-        function updateSFSCosts(costs) {
-            const sfsContainer = document.getElementById('sfsCosts');
-            const marginPercent = ((costs.sfsMargin / costs.landedCost) * 100).toFixed(2);
-            
-            sfsContainer.innerHTML = `
-                <div class="cost-line">
-                    <span class="cost-label">Landed Cost:</span>
-                    <span class="cost-value">$${costs.landedCost.toFixed(2)}</span>
-                </div>
-                <div class="cost-line">
-                    <span class="cost-label">+ SFS Margin (${marginPercent}%):</span>
-                    <span class="cost-value">$${costs.sfsMargin.toFixed(2)}</span>
-                </div>
-                <div class="cost-line">
-                    <span class="cost-label">+ Operating Costs:</span>
-                    <span class="cost-value">$${costs.operatingCosts.toFixed(2)}</span>
-                </div>
-                <div class="cost-line total">
-                    <span class="cost-label">SFS Selling Price:</span>
-                    <span class="cost-value">$${costs.sellingPrice.toFixed(2)}</span>
-                </div>
-            `;
-        }
-
-        function closeDetail() {
-            document.getElementById('detailModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-
-        function downloadHistory() {
-            // Simulate Excel download
-            alert('Excel file download started! This would integrate with your database to export historical pricing data.');
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('detailModal').addEventListener('click', function(event) {
-            if (event.target === this) {
-                closeDetail();
-            }
-        });
-
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', initializeApp);
-    </script>
-</body>
-</html>
+            async showItemDetail(item) {
+                const modal = document.getElementById('detailModal');
+                const title = document.getElementById('detailItemTitle');
+                const subtitle = document.getElementById('detailItemSubtitle');
+                const body = document.getElementById('detailBody');
+                
+                // Show modal with loading state
+                title.textContent = `${item.items.sku} - ${item.items.description || 'N/A'}`;
+                subtitle.textContent = this.getPackageInfo(item.items);
+                
+                body.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading detailed pricing information...</div></div>';
+                
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                
+                try {
+                    const detailedData = await this.service.getItemDetailedPricing(
+                        item.items.id, 
+                        this.currentQuarter
+                    );
+                    
+                    const priceHistory = await this.service.getItemPriceHistory(item.items.id);
+                    
+                    this.renderItemDetail(detailedData, priceHistory.data || []);

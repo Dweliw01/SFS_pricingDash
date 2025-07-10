@@ -623,7 +623,9 @@
                     eq: {
                         'items.is_active': true
                     },
-                    order: 'items.sku.asc'
+                    // Ordering by the joined table column triggers a parse error
+                    // so order directly by the column name instead
+                    order: 'sku.asc'
                 };
 
                 if (quarterId) {

@@ -1,7 +1,8 @@
 # SFS Pricing Dashboard
 
 This simple portal connects to a Supabase project using the REST Data API
-and displays pricing information from the database. To use it:
+and displays pricing information from the database. By default the portal is
+configured to use the new `knrzvhxavdyvrbbcgkqf` project. To use it:
 
 1. Open `index.html` in a modern web browser.
 2. The page automatically connects to the configured Supabase instance

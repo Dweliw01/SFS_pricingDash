@@ -623,7 +623,8 @@
                     eq: {
                         'items.is_active': true
                     },
-                    order: 'items.sku.asc'
+                    // NOTE: Ordering by a related table column is not supported
+                    // on all PostgREST versions. We'll sort client-side.
                 };
 
                 if (quarterId) {
@@ -700,7 +701,8 @@
                         )
                     `,
                     eq: { item_id: itemId },
-                    order: 'price_quarters.start_date.desc',
+                    // Ordering by related table columns may fail on some PostgREST
+                    // versions, so fetch the rows and sort them client-side
                     limit: limit.toString()
                 });
             }
@@ -829,7 +831,11 @@
                         throw new Error(result.error);
                     }
 
-                    this.items = result.data || [];
+                    this.items = (result.data || []).sort((a, b) => {
+                        const skuA = a.items?.sku || '';
+                        const skuB = b.items?.sku || '';
+                        return skuA.localeCompare(skuB);
+                    });
                     this.renderItems();
                     
                     console.log('✅ Loaded items:', this.items.length);
@@ -943,8 +949,13 @@
                     );
                     
                     const priceHistory = await this.service.getItemPriceHistory(item.items.id);
-                    
-                    this.renderItemDetail(detailedData, priceHistory.data || []);
+                    const sortedHistory = (priceHistory.data || []).sort((a, b) => {
+                        const dateA = new Date(a.price_quarters.start_date);
+                        const dateB = new Date(b.price_quarters.start_date);
+                        return dateB - dateA;
+                    });
+
+                    this.renderItemDetail(detailedData, sortedHistory);
                 } catch (error) {
                     console.error('❌ Failed to load item detail:', error);
                     body.innerHTML = '<div class="error">Failed to load item details.</div>';

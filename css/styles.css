@@ -11,7 +11,8 @@ body {
     min-height: 100vh;
     padding: 20px;
     margin: 0;
-    overflow-x: hidden;
+    /* Allow horizontal scrolling when content overflows */
+    overflow-x: auto;
 }
 
 .container {
@@ -21,7 +22,8 @@ body {
     border-radius: 20px;
     backdrop-filter: blur(10px);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    /* Enable horizontal scrolling instead of clipping on small screens */
+    overflow-x: auto;
     position: relative;
     z-index: 10;
 }

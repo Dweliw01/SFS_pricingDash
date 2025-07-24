@@ -9,8 +9,15 @@ function renderItems(items) {
     const existingRows = tableContainer.querySelectorAll('.table-row');
     existingRows.forEach(row => row.remove());
 
+    // Clear any previous "no results" message
+    const existingNoResults = tableContainer.querySelector('.no-results');
+    if (existingNoResults) {
+        existingNoResults.remove();
+    }
+
     if (items.length === 0) {
         const noResults = document.createElement('div');
+        noResults.className = 'no-results';
         noResults.style.cssText = 'text-align: center; padding: 40px; color: #6b7280; grid-column: 1 / -1;';
         noResults.textContent = 'No items found';
         tableContainer.appendChild(noResults);
